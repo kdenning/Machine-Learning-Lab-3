@@ -33,7 +33,11 @@ df <- read_csv(here::here("data", "train.csv")) %>%
 Set a seed and split the data into a training set and a testing set as two named objects. 
 
 ```{r, initial_split}
+set.seed(210)
+split <- initial_split(df)
 
+train_set <- training(split)
+test_set <- testing(split)
 
 ```
 
@@ -42,8 +46,9 @@ Set a seed and split the data into a training set and a testing set as two named
 Set a seed and use 10-fold cross-validation to resample the traning data.
 
 ```{r, resample}
-
-
+set.seed(210)
+cv_splits <- vfold_cv(train_set)
+cv_splits
 ```
 
 ## 3. Preprocess
