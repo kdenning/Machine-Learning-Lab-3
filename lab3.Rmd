@@ -48,7 +48,7 @@ Set a seed and use 10-fold cross-validation to resample the traning data.
 ```{r, resample}
 set.seed(210)
 cv_splits <- vfold_cv(train_set)
-cv_splits
+#cv_splits
 ```
 
 ## 3. Preprocess
@@ -63,13 +63,13 @@ Complete the code maze below by filling in the blanks (____) to create a recipe 
 
 lasso4_rec <- 
   recipe(
-    formula = ____, 
-    data = ____ #use your training set here
+    formula = score ~ ethnic_cd + econ_dsvntg + gndr + migrant_ed_fg, 
+    data = train_set #use your training set here
   ) %>%
   step_naomit(everything(), skip = TRUE) %>% 
-  step_string2factor() %>%  #may not need, depending on your formula
-  step_dummy() %>% #may not need, depending on your formula
-  step_normalize() #may not need, depending on your formula
+  step_string2factor(econ_dsvntg, gndr, ethnic_cd, migrant_ed_fg) %>%  #may not need, depending on your formula
+  step_dummy(econ_dsvntg, gndr, ethnic_cd, migrant_ed_fg) #%>% #may not need, depending on your formula
+  #step_normalize() #may not need, depending on your formula
 
 ```
 
@@ -79,7 +79,11 @@ Create a `{parsnip}` lasso model where the penalty hyperparameter is set to be t
 
 ```{r, lasso}
 
-
+mod_lasso <- linear_reg() %>%
+  set_engine("glmnet") %>% 
+  set_mode("regression") %>% # redundant; just getting in the habit
+  set_args(penalty = tune(), # we set the penalty = .1 
+           mixture = 1) # specifies a lasso regression model
 
 ```
 
@@ -88,13 +92,13 @@ Create a `{parsnip}` lasso model where the penalty hyperparameter is set to be t
 Complete the code maze below to fit a tuned lasso model.
 
 ```{r, lasso_fit_1}
-
+library(glmnet)
 lasso_grid <- grid_regular(penalty())
 
 lasso4_fit_1 <- tune_grid(
-  ____,
-  preprocessor = ____,
-  resamples = ____,
+  mod_lasso,
+  preprocessor = lasso4_rec,
+  resamples = cv_splits,
   grid = lasso_grid,
   control = tune::control_resamples(verbose = TRUE,
                                     save_pred = TRUE)
