@@ -110,13 +110,16 @@ lasso4_fit_1 <- tune_grid(
   + How many models were fit to each fold of `lasso4_fit_1`? (Please provide a numeric answer, *and* use code to corroborate your answer.)
   
 ```{r}
-
+lasso4_fit_1 %>% collect_metrics()%>%
+  filter(`.metric`== "rmse")
 ```
+
+3 values were fitted to each fold 
 
   + Use code to list the different values of `penalty()` that were used.
 
 ```{r}
-
+lasso_grid
 
 ```
 
@@ -127,9 +130,9 @@ Use your code from (5) above to complete the code maze below to fit a second tun
 ```{r, lasso_fit_2}
 
 lasso4_fit_2 <- tune_grid(
-  ____,
-  preprocessor = ____,
-  resamples = ____,
+  mod_lasso,
+  preprocessor = lasso4_rec,
+  resamples = cv_splits,
   control = tune::control_resamples(verbose = TRUE,
                                     save_pred = TRUE)
 )
@@ -141,16 +144,24 @@ lasso4_fit_2 <- tune_grid(
   + How many models were fit to each fold of `lasso4_fit_2`? (Please provide a numeric answer, *and* use code to corroborate your answer.)
 
 ```{r}
+lasso4_fit_2 %>% collect_metrics()%>%
+  filter(`.metric` == "rmse")
 
+#lasso4_fit_2 %>% select_best(metric = "rmse")
 
 ```
-
+ 
+ 10, since it was the default for tune_grid 
+ 
   + If this is different than the number of models of `lasso4_fit_1`, please explain why.
+
+Because we didn't specify it , before we had the defoult gor grid_regular (default = 3), while tune_grid has a default of 10
 
   + Use code to list the different values of `penalty()` that were used for *lasso4_fit_2*.
 
 ```{r}
-
+lasso4_fit_2 %>% collect_metrics()%>%
+  select(penalty)
 
 ```
 
@@ -159,7 +170,30 @@ lasso4_fit_2 <- tune_grid(
 ```{r, lasso8}
 
 
+# preprocess
 
+lasso8_rec <- 
+  recipe(
+    formula = score ~ ethnic_cd + econ_dsvntg + gndr + migrant_ed_fg + lat + lon + sp_ed_fg + tag_ed_fg, 
+    data = train_set #use your training set here
+  ) %>%
+  step_naomit(everything(), skip = TRUE) %>% 
+  step_string2factor(econ_dsvntg, gndr, ethnic_cd, migrant_ed_fg, sp_ed_fg, tag_ed_fg) %>%  #may not need, depending on your formula
+  step_dummy(econ_dsvntg, gndr, ethnic_cd, migrant_ed_fg, sp_ed_fg, tag_ed_fg) %>% #may not need, depending on your formula
+  step_normalize(lat, lon) #may not need, depending on your formula
+
+#fit model 
+
+lasso_grid <- grid_regular(penalty())
+
+lasso8_fit_1 <- tune_grid(
+  mod_lasso,
+  preprocessor = lasso8_rec,
+  resamples = cv_splits,
+  grid = lasso_grid,
+  control = tune::control_resamples(verbose = TRUE,
+                                    save_pred = TRUE)
+)
 
 ```
 
