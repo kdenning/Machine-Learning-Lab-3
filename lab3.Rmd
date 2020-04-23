@@ -78,13 +78,11 @@ lasso4_rec <-
 Create a `{parsnip}` lasso model where the penalty hyperparameter is set to be tuned.
 
 ```{r, lasso}
-
 mod_lasso <- linear_reg() %>%
   set_engine("glmnet") %>% 
   set_mode("regression") %>% # redundant; just getting in the habit
   set_args(penalty = tune(), # we set the penalty = .1 
            mixture = 1) # specifies a lasso regression model
-
 ```
 
 ## 5. Fit a tuned lasso model
@@ -114,13 +112,12 @@ lasso4_fit_1 %>% collect_metrics()%>%
   filter(`.metric`== "rmse")
 ```
 
-3 values were fitted to each fold 
+3 values were fitted to each fold. 
 
   + Use code to list the different values of `penalty()` that were used.
 
 ```{r}
 lasso_grid
-
 ```
 
 ## 6. Fit another tuned lasso model
@@ -128,7 +125,6 @@ lasso_grid
 Use your code from (5) above to complete the code maze below to fit a second tuned lasso model, using the same `parsnip` model, `recipe`, and resampled object you used before.
 
 ```{r, lasso_fit_2}
-
 lasso4_fit_2 <- tune_grid(
   mod_lasso,
   preprocessor = lasso4_rec,
@@ -136,7 +132,6 @@ lasso4_fit_2 <- tune_grid(
   control = tune::control_resamples(verbose = TRUE,
                                     save_pred = TRUE)
 )
-
 ```
 
 ### Question B
@@ -144,32 +139,26 @@ lasso4_fit_2 <- tune_grid(
   + How many models were fit to each fold of `lasso4_fit_2`? (Please provide a numeric answer, *and* use code to corroborate your answer.)
 
 ```{r}
-lasso4_fit_2 %>% collect_metrics()%>%
+lasso4_fit_2 %>% collect_metrics() %>%
   filter(`.metric` == "rmse")
-
-#lasso4_fit_2 %>% select_best(metric = "rmse")
-
 ```
  
- 10, since it was the default for tune_grid 
+There were 10 models fit to each fold, since 10 is the default for tune_grid. 
  
   + If this is different than the number of models of `lasso4_fit_1`, please explain why.
 
-Because we didn't specify it , before we had the defoult gor grid_regular (default = 3), while tune_grid has a default of 10
+In lasso4_fit_1, we used the defoult for grid_regular, which was 3. In this model, we used a different function (tune_grid), which has a different default of 10 models per fold.
 
   + Use code to list the different values of `penalty()` that were used for *lasso4_fit_2*.
 
 ```{r}
 lasso4_fit_2 %>% collect_metrics()%>%
   select(penalty)
-
 ```
 
 ## 7. Complete the necessary steps to create and fit a tuned lasso model that has seven or more predictors (use any tuning grid you like). Note that you will need to create a new recipe as well.
 
 ```{r, lasso8}
-
-
 # preprocess
 
 lasso8_rec <- 
@@ -200,8 +189,18 @@ lasso8_fit_1 <- tune_grid(
 ## 8. Compare the metrics from the best lasso model with 4 predictors to the best lasso model with 7+ predicors. Which is best?
 
 ```{r}
+# Best lasso 4 fit 1
+lasso4_fit_1 %>% select_best(metric = "rmse")
+best4 <- lasso4_fit_1 %>% collect_metrics() %>% filter(penalty == 0.0000000001)
+best4
 
+# Best lasso 8
+lasso8_fit_1 %>% select_best(metric = "rmse")
+best8 <- lasso8_fit_1 %>% collect_metrics() %>% filter(penalty == 0.0000000001)
+best8
 ```
+
+Lasso8 is better because the standard error is smaller compared to Lasso4 when comparing the best models of each fit. 
 
 ## 9. Fit a tuned elastic net model with the same predictors from (9). 
   + Create a new `{parsnip}` elastic net model
