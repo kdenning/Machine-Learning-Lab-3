@@ -209,8 +209,45 @@ Lasso8 is better because the standard error is smaller compared to Lasso4 when c
   + Compare the metrics from the elastic net model to the best lasso model from (10). Which would you choose for your final model? What are the best hyperparameters for that model?
 
 ```{r}
+(enet_params <- parameters(penalty(), mixture()))
+(enet_grid <- grid_regular(enet_params, levels = c(10, 5)))
+options(scipen = 999)
+unique(enet_grid$penalty)
+unique(enet_grid$mixture)
 
+enet_grid <- grid_regular(enet_params, levels = c(10, 5))
 
+#setting the model 
+enet_tune_mod <- linear_reg() %>%
+  set_engine("glmnet") %>% 
+  set_args(penalty = tune(), 
+           mixture = tune())
+# Fit model 
+enet_tune_mod_results <- tune_grid(
+  enet_tune_mod,
+  preprocessor = lasso8_rec,
+  resamples = cv_splits,
+  grid = enet_grid,
+#  metrics = yardstick::metric_set(rmse),
+  control = tune::control_resamples(verbose = TRUE,
+                                    save_pred = TRUE)
+)
+
+collect_metrics(enet_tune_mod_results)
+
+enet_tune_mod_results %>%
+  show_best(metric = "rmse", n = 5)
+
+# Best from enet
+enet_tune_mod_results %>%
+  select_best(metric = "rmse")
+
+best_e <- enet_tune_mod_results %>% collect_metrics() %>% filter(penalty == 0.0000000001 & mixture == 0.75)
+best_e
+
+# Best lasso 8
+best8
 ```
 
+Our best elastic net model has the same standard error as our Lasso 8 model, so you could pick whichever one you want!
 
